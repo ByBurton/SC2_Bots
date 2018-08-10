@@ -47,6 +47,20 @@ class ProtossBaseBot(sc2.BotAI):
 
 
 
+		def on_start():
+			self.MyUnitDict = Dictionary
+			self.JobQ = Queue
+
+		def on_create(unit):
+			self.MyUnitDict[unit.tag] = (unit.type, unit.position)
+
+		def on_destroyed(tag)
+			if tag in MyUnitDict:
+				self.JobQ.enqueue((MyUnitDict[unit.tag][0], MyUnitDict[unit.tag][1])
+
+		def on_step():
+			for job in self.JobQ:
+				self.do(self.build(job[0], job[i]))
 
 	#async def check_surrender(self):
 		#if not self.units(PYLON).ready.exists or  [check if main nexus has been destroyed]:
