@@ -37,7 +37,7 @@ class ProtossBaseBot(sc2.BotAI):
 		##defend each base
 		#self.defend()
 		##have some units at each expansion, and more at the main base
-		#self.move_units()
+		#self.split_army()
 		##use observers to scout the borders
 		#self.scout_borders()
 		##surrender if out of pylons or main base nexus is destroyed
@@ -84,6 +84,8 @@ class ProtossBaseBot(sc2.BotAI):
 					break
 				if not self.units(ASSIMILATOR).closer_than(1.0, vg).exists:
 					await self.do(worker.build(ASSIMILATOR, vg))
+
+
 
 
 

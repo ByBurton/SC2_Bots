@@ -9,10 +9,7 @@ from sc2.data import race_townhalls
 
 class HiveMind(sc2.BotAI):
 	async def on_step(self, iteration):
-		self.count += 1
-		if(self.count > 50):
-			await self.distribute_workers()  # in sc2/bot_ai.py
-			self.count -= 50
+		await self.distribute_workers()  # in sc2/bot_ai.py
 		await self.maintain_enough_control()
 		await self.build_drones()  # workers bc obviously
 		await self.expand()
@@ -45,8 +42,11 @@ class HiveMind(sc2.BotAI):
 					await self.do(worker.build(EXTRACTOR, vg))
 
 	async def build_drones(self):
-		maxdrones = self.townhalls.amount * 22
-		if maxdrones > 60:
+		if self.units(DRONE).amount > 70:
+			return
+
+		maxdrones = ( self.townhalls.amount * 18 ) + 2
+		if maxdrones > 69:
 			maxdrones = 70
 
 		if self.units(DRONE).amount < maxdrones:
@@ -158,42 +158,42 @@ class HiveMind(sc2.BotAI):
 	#build me an army worthy of mordor
 	async def build_army(self):
 		ultralisks = 3 #18 supply
-		mutalisks = 13 #26 supply
+		mutalisks = 12 #24 supply
 		hydralisks = 24 #48 supply
 		zerglings = 60 #30 supply
-		#needed supply 122
+		#needed supply 120
 
-		if self.units(DRONE).amount > 70:
-			count = self.units(DRONE).amount - 70
-			currentCount = count
+		#if self.units(DRONE).amount > 70:
+			#count = self.units(DRONE).amount - 70
+			#currentCount = count
 
-			for drone in self.units(DRONE):
-				if count > 0:
-					await self.do(drone.attack(self.find_target(self.state)))
-					count = count - 1
-					self.chat_send('suiciding drone(s)')
-					break
+			#for drone in self.units(DRONE):
+				#if count > 0:
+					#await self.do(drone.attack(self.find_target(self.state)))
+					#count = count - 1
+					#self.chat_send('suiciding drone(s)')
+					#break
 
 
 		#if self.units(DRONE).amount < 15 * self.townhalls.ready.amount:
 			#return
 
-		if self.can_afford(ULTRALISK) and self.units(ULTRALISKCAVERN).ready.exists and self.units(ULTRALISK).amount < ultralisks and self.supply_left > 6:
+		if self.can_afford(ULTRALISK) and self.units(ULTRALISKCAVERN).ready.exists and self.units(ULTRALISK).amount < ultralisks and self.supply_left > 5:
 			larvae = self.units(LARVA)
 			if larvae.exists:
 				larva = larvae.random
 				await self.do(larva.train(ULTRALISK))
-		if self.can_afford(MUTALISK) and self.units(SPIRE).ready.exists and self.units(MUTALISK).amount < mutalisks and self.supply_left > 2:
+		if self.can_afford(MUTALISK) and self.units(SPIRE).ready.exists and self.units(MUTALISK).amount < mutalisks and self.supply_left > 1:
 			larvae = self.units(LARVA)
 			if larvae.exists:
 				larva = larvae.random
 				await self.do(larva.train(MUTALISK))
-		if self.can_afford(HYDRALISK) and self.units(HYDRALISKDEN).ready.exists and self.units(HYDRALISK).amount < hydralisks and self.supply_left > 2:
+		if self.can_afford(HYDRALISK) and self.units(HYDRALISKDEN).ready.exists and self.units(HYDRALISK).amount < hydralisks and self.supply_left > 1:
 			larvae = self.units(LARVA)
 			if larvae.exists:
 				larva = larvae.random
 				await self.do(larva.train(HYDRALISK))
-		if self.can_afford(ZERGLING) and self.units(SPAWNINGPOOL).ready.exists and self.units(ZERGLING).amount < zerglings and self.supply_left > 1:
+		if self.can_afford(ZERGLING) and self.units(SPAWNINGPOOL).ready.exists and self.units(ZERGLING).amount < zerglings and self.supply_left > 0:
 			larvae = self.units(LARVA)
 			if larvae.exists:
 				larva = larvae.random
@@ -201,9 +201,9 @@ class HiveMind(sc2.BotAI):
 
 	#attack with all the force we got, not earlier
 	async def attack(self):
-		if self.units(ZERGLING).amount > 59 and self.units(HYDRALISK).amount > 23 and self.units(MUTALISK).amount > 12 and self.units(ULTRALISK).amount > 2:
+		if self.units(ZERGLING).amount > 50 and self.units(HYDRALISK).amount > 18 and self.units(MUTALISK).amount > 8 and self.units(ULTRALISK).amount > 2:
 			forces = self.units(ZERGLING).idle | self.units(HYDRALISK).idle | self.units(MUTALISK).idle | self.units(ULTRALISK).idle
-			self.gather_forces()
+			#await self.gather_forces()
 
 			self.chat_send('gg ez')
 			for unit in forces.idle:
@@ -211,7 +211,7 @@ class HiveMind(sc2.BotAI):
 
 	#does not seem to work
 	async def gather_forces(self):
-		await self.chat_send('gathing forces')
+		#await self.chat_send('gathing forces')
 		forces = self.units(ZERGLING).idle | self.units(HYDRALISK).idle | self.units(MUTALISK).idle | self.units(ULTRALISK).idle
 
 		pos = self.townhalls.ready.random
@@ -222,25 +222,39 @@ class HiveMind(sc2.BotAI):
 	#todo: do not follow the enemy back to their base
 	async def defend(self):
 		forces = self.units(ZERGLING).idle | self.units(HYDRALISK).idle | self.units(MUTALISK).idle | self.units(ULTRALISK).idle
-		self.gather_forces()
+		#await self.gather_forces()
 
 		for building in self.units().structure:
 			bl_pos = building.position
 			for unit in forces:
-				if self.known_enemy_units.closer_than(10, bl_pos).exists:
-					choice = random.choice(self.known_enemy_units.closer_than(30, bl_pos))
+				if self.known_enemy_units.closer_than(25, bl_pos).exists:
+					choice = random.choice(self.known_enemy_units.closer_than(26, bl_pos))
 					await self.do(unit.attack(choice.position))
 
 
 	async def expand(self):
-		try:
-			if self.can_afford(HATCHERY) and not self.already_pending(HATCHERY):
+		# expand if we can afford and have less than 2 bases
+		if self.already_pending(UnitTypeId.HATCHERY) == 0 and self.can_afford(UnitTypeId.HATCHERY):
+			# get_next_expansion returns the center of the mineral fields of the next nearby expansion
+			next_expo = await self.get_next_expansion()
+			# from the center of mineral fields, we need to find a valid place to place the command center
+			location = await self.find_placement(UnitTypeId.HATCHERY, next_expo, placement_step=1)
+			if location:
+				# now we "select" (or choose) the nearest worker to that found location
+				w = self.select_build_worker(location)
+				if w and self.can_afford(UnitTypeId.HATCHERY):
+					# the worker will be commanded to build the command center
+					error = await self.do(w.build(UnitTypeId.HATCHERY, location))
+					if error:
+						print(error)
+		#try:
+			#if self.can_afford(HATCHERY) and not self.already_pending(HATCHERY):
 				#await self.chat_send('trying to expand')
 				#library is not working; gotta wait for python-sc2 to fix that.
 				#https://github.com/Dentosal/python-sc2/issues/97
-				await self.expand_now()
-		except AssertionError:
-			print("AssertionError DAMNIT")
+				#await self.expand_now()
+		#except AssertionError:
+			#print("AssertionError DAMNIT")
 
 	#async def upgrades(self):
 		#if self.minerals > 750 and self.vespene > 325:
@@ -252,5 +266,5 @@ class HiveMind(sc2.BotAI):
 run_game(maps.get("AbyssalReefLE"), [
 	#Human(Race.Random),
 	Bot(Race.Zerg, HiveMind()),
-	Computer(Race.Terran, Difficulty.Easy)
+	Computer(Race.Random, Difficulty.Medium)
 	], realtime=False)
