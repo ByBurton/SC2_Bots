@@ -1,2 +1,0 @@
-python "HiveMind.py"
-pause
