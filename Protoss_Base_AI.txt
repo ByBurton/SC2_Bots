@@ -1,0 +1,12 @@
+Basic idea:
+-Not aggressive until 200 / 200 cap is reached. (MAYBE: And even then only sends in "waves" of units. If possible. like in campaigns.)
+-Completely not competitive. Just4Fun.
+-Big bases. Each expansion should be big (have each building once, and some defenses), and the main base extra big (each building once, twice later on, a lot of photon cannons and shield batteries)
+-economy focus. very early expansions
+-observer rush. not scouting the enemy, but the border of its part of the map
+-defends its base, but does not attack, look at idea 1
+(-MAYBE: does not defend one base with all its units, always keeps some at each other base)
+-about static defenses: I want them kind of around the bases, is that somehow possible? like a border of some sort. and for each two photon cannons put one shield barrier behind them. ?
+-randomly chooses one kind of unit that it focuses on, still builds others, but in very few numbers. e.g. regular ground units (zealots and stalkers), special units (psi wizard dudes), 
+	invis (dark templar), mech (robotic facility units) or air (void rays)
+-ability to surrender if main nexus has fallen or no pylons are left (why? because I say so :P)
