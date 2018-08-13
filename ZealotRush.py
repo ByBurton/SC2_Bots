@@ -18,7 +18,7 @@ class ZealotRushBot(sc2.BotAI):
 		self.armor_1 = False
 		self.armor_2 = False
 		self.armor_3 = False
-		self.faster_zealots = False
+		self.charge = False
 
 	async def on_step(self, iteration):
 		await self.distribute_workers()  # in sc2/bot_ai.py
@@ -34,6 +34,7 @@ class ZealotRushBot(sc2.BotAI):
 		await self.do_tc_research()
 		await self.train_zealots()
 		await self.do_attack()
+		await self.do_defend()
 
 
 	async def do_attack(self):
@@ -48,6 +49,22 @@ class ZealotRushBot(sc2.BotAI):
 				for zealot in zealots:
 					await self.do(zealot.attack(self.find_target(self.state)))
 
+	#todo: do not follow the enemy back to their base
+	async def do_defend(self):
+		zealots = self.units(ZEALOT).idle
+
+		for building in self.units().structure:
+			bl_pos = building.position
+			for zealot in zealots:
+				if self.known_enemy_units.closer_than(25, bl_pos).exists:
+
+					#print("defend: idle units: %d; total units: %d" % (forces.amount, nonidle.amount))
+
+					choice = random.choice(self.known_enemy_units.closer_than(26, bl_pos))
+					await self.do(zealot.attack(choice.position))
+				else:
+					break
+
 	async def expand(self):
 		if self.can_afford(NEXUS) and not self.already_pending(NEXUS):
 			await self.expand_now()
@@ -56,7 +73,7 @@ class ZealotRushBot(sc2.BotAI):
 		for nexus in self.townhalls.ready:
 			vgs = self.state.vespene_geyser.closer_than(10, nexus)
 			for vg in vgs:
-				if not self.can_afford(ASSIMILATOR) or self.units(PROBE).amount <= 15:
+				if not self.can_afford(ASSIMILATOR) or self.units(PROBE).amount <= 16:
 					break
 				worker = self.select_build_worker(vg.position)
 				if worker is None:
@@ -169,33 +186,33 @@ class ZealotRushBot(sc2.BotAI):
 				if self.can_afford(PROTOSSGROUNDWEAPONSLEVEL1) and self.weapons_1 == False:
 					await self.do(forge.research(PROTOSSGROUNDWEAPONSLEVEL1))
 					self.weapons_1 = True
-				if self.can_afford(PROTOSSGROUNDWEAPONSLEVEL2) and self.weapons_2 == False:
+				if self.can_afford(PROTOSSGROUNDWEAPONSLEVEL2) and self.weapons_2 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
 					await self.do(forge.research(PROTOSSGROUNDWEAPONSLEVEL2))
 					self.weapons_2 = True
-				if self.can_afford(PROTOSSGROUNDWEAPONSLEVEL3) and self.weapons_3 == False:
+				if self.can_afford(PROTOSSGROUNDWEAPONSLEVEL3) and self.weapons_3 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
 					await self.do(forge.research(PROTOSSGROUNDWEAPONSLEVEL3))
 					self.weapons_3 = True
 				if self.can_afford(PROTOSSSHIELDSLEVEL1) and self.shields_1 == False:
 					await self.do(forge.research(PROTOSSSHIELDSLEVEL1))
 					self.shields_1 = True
-				if self.can_afford(PROTOSSSHIELDSLEVEL2) and self.shields_2 == False:
+				if self.can_afford(PROTOSSSHIELDSLEVEL2) and self.shields_2 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
 					await self.do(forge.research(PROTOSSSHIELDSLEVEL2))
 					self.shields_2 = True
-				if self.can_afford(PROTOSSSHIELDSLEVEL3) and self.shields_3 == False:
+				if self.can_afford(PROTOSSSHIELDSLEVEL3) and self.shields_3 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
 					await self.do(forge.research(PROTOSSSHIELDSLEVEL3))
 					self.shields_3 = True
 				if self.can_afford(PROTOSSGROUNDARMORSLEVEL1) and self.armor_1 == False:
 					await self.do(forge.research(PROTOSSGROUNDARMORSLEVEL1))
 					self.armor_1 = True
-				if self.can_afford(PROTOSSGROUNDARMORSLEVEL2) and self.armor_2 == False:
+				if self.can_afford(PROTOSSGROUNDARMORSLEVEL2) and self.armor_2 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
 					await self.do(forge.research(PROTOSSGROUNDARMORSLEVEL2))
 					self.armor_2 = True
-				if self.can_afford(PROTOSSGROUNDARMORSLEVEL3) and self.armor_3 == False:
+				if self.can_afford(PROTOSSGROUNDARMORSLEVEL3) and self.armor_3 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
 					await self.do(forge.research(PROTOSSGROUNDARMORSLEVEL3))
 					self.armor_3 = True	
 
 	async def do_tc_research(self):
-		if self.faster_zealots:
+		if self.charge == True:
 			return
 
 		t_councils = self.units(TWILIGHTCOUNCIL).ready.noqueue
@@ -204,9 +221,9 @@ class ZealotRushBot(sc2.BotAI):
 
 		tc = t_councils.first
 		if tc is not None:
-			if self.faster_zealots == False and self.can_afford(CHARGE):
+			if self.charge == False and self.can_afford(CHARGE):
 				await self.do(tc.research(CHARGE))
-				self.faster_zealots = True		
+				self.charge = True		
 
 
 
