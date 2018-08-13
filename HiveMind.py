@@ -19,7 +19,7 @@ class HiveMind(sc2.BotAI):
 		await self.extractors()
 		await self.build_spawning_pools()
 		await self.build_army()
-		await self.build_evolution_chambers()
+		#await self.build_evolution_chambers()
 		await self.build_hydralisk_dens()
 		await self.build_spires()
 		await self.build_infestation_pits()
@@ -210,13 +210,13 @@ class HiveMind(sc2.BotAI):
 				await self.do(unit.attack(self.find_target(self.state)))
 		else:
 			if self.units(ZERGLING).amount <= 49:
-				print("Not enough Zerglings for an attack! {0} / 50", self.units(ZERGLING).amount)
+				print("Not enough Zerglings for an attack! %d / 18" % (self.units(ZERGLING).amount))
 			if self.units(HYDRALISK).amount <= 17:
-				print("Not enough Hyralisks for an attack! {0} / 18", self.units(HYDRALISK).amount)
+				print("Not enough Hydralisks for an attack! %d / 18" % (self.units(HYDRALISK).amount))
 			if self.units(MUTALISK).amount <= 8:
-				print("Not enough Mutalisks for an attack! {0} / 9", self.units(MUTALISK).amount)
+				print("Not enough Mutalisks for an attack! %d / 18" % (self.units(MUTALISK).amount))
 			if self.units(ULTRALISK).amount <= 1:
-				print("Not enough Ultralisks for an attack! {0} / 18", self.units(ULTRALISK).amount)
+				print("Not enough Ultralisks for an attack! %d / 18" % (self.units(ULTRALISK).amount))
 
 	#does not seem to work
 	async def gather_forces(self):
@@ -247,12 +247,12 @@ class HiveMind(sc2.BotAI):
 			for unit in forces:
 				if self.known_enemy_units.closer_than(25, bl_pos).exists:
 
-					print("defend: idle units: {0}; total units: {1}", forces.amount, nonidle.amount)
+					print("defend: idle units: %d; total units: %d" % (forces.amount, nonidle.amount))
 
 					choice = random.choice(self.known_enemy_units.closer_than(26, bl_pos))
 					await self.do(unit.attack(choice.position))
-				#else:
-					#await self.goto_random_hq(unit)
+				else:
+					break
 
 
 	async def expand(self):

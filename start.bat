@@ -1,3 +1,4 @@
 rem "Starting HiveMind bot . . ."
-python "HiveMind.py"
+python "ZealotRush.py"
+rem python "HiveMind.py"
 pause
