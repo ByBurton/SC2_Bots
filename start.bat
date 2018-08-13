@@ -1,3 +1,3 @@
+rem "Starting HiveMind bot . . ."
 python "HiveMind.py"
-rem python "ProtossBase.py"
 pause

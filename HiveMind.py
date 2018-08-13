@@ -33,7 +33,7 @@ class HiveMind(sc2.BotAI):
 		for hatchery in self.townhalls.ready:
 			vgs = self.state.vespene_geyser.closer_than(10, hatchery)
 			for vg in vgs:
-				if not self.can_afford(EXTRACTOR):
+				if not self.can_afford(EXTRACTOR) or self.units(DRONE).amount <= 15:
 					break
 				worker = self.select_build_worker(vg.position)
 				if worker is None:
@@ -201,13 +201,22 @@ class HiveMind(sc2.BotAI):
 
 	#attack with all the force we got, not earlier
 	async def attack(self):
-		if self.units(ZERGLING).amount > 50 and self.units(HYDRALISK).amount > 18 and self.units(MUTALISK).amount > 8 and self.units(ULTRALISK).amount > 2:
-			forces = self.units(ZERGLING).idle | self.units(HYDRALISK).idle | self.units(MUTALISK).idle | self.units(ULTRALISK).idle
+		if self.units(ZERGLING).amount >= 50 and self.units(HYDRALISK).amount >= 18 and self.units(MUTALISK).amount >= 9 and self.units(ULTRALISK).amount >= 2:
+			forces = self.units(ZERGLING) | self.units(HYDRALISK) | self.units(MUTALISK) | self.units(ULTRALISK)
 			#await self.gather_forces()
 
 			self.chat_send('gg ez')
 			for unit in forces.idle:
 				await self.do(unit.attack(self.find_target(self.state)))
+		else:
+			if self.units(ZERGLING).amount <= 49:
+				print("Not enough Zerglings for an attack! {0} / 50", self.units(ZERGLING).amount)
+			if self.units(HYDRALISK).amount <= 17:
+				print("Not enough Hyralisks for an attack! {0} / 18", self.units(HYDRALISK).amount)
+			if self.units(MUTALISK).amount <= 8:
+				print("Not enough Mutalisks for an attack! {0} / 9", self.units(MUTALISK).amount)
+			if self.units(ULTRALISK).amount <= 1:
+				print("Not enough Ultralisks for an attack! {0} / 18", self.units(ULTRALISK).amount)
 
 	#does not seem to work
 	async def gather_forces(self):
@@ -218,18 +227,32 @@ class HiveMind(sc2.BotAI):
 		for unit in forces:
 			await self.do(unit.move(pos))
 
+	async def goto_random_hq(self, unit):
+		#await self.chat_send('gathing forces')
+		#forces = self.units(ZERGLING).idle | self.units(HYDRALISK).idle | self.units(MUTALISK).idle | self.units(ULTRALISK).idle
+
+		pos = self.townhalls.ready.random
+		#for unit in forces:
+		await self.do(unit.move(pos))
+
 	#base defense
 	#todo: do not follow the enemy back to their base
 	async def defend(self):
 		forces = self.units(ZERGLING).idle | self.units(HYDRALISK).idle | self.units(MUTALISK).idle | self.units(ULTRALISK).idle
+		nonidle = self.units(ZERGLING) | self.units(HYDRALISK) | self.units(MUTALISK) | self.units(ULTRALISK)
 		#await self.gather_forces()
 
 		for building in self.units().structure:
 			bl_pos = building.position
 			for unit in forces:
 				if self.known_enemy_units.closer_than(25, bl_pos).exists:
+
+					print("defend: idle units: {0}; total units: {1}", forces.amount, nonidle.amount)
+
 					choice = random.choice(self.known_enemy_units.closer_than(26, bl_pos))
 					await self.do(unit.attack(choice.position))
+				#else:
+					#await self.goto_random_hq(unit)
 
 
 	async def expand(self):
@@ -262,9 +285,9 @@ class HiveMind(sc2.BotAI):
 
 
 
-#runs the actualy game
+#runs the actual game
 run_game(maps.get("AbyssalReefLE"), [
-	#Human(Race.Random),
+	#Human(Race.Terran),
 	Bot(Race.Zerg, HiveMind()),
 	Computer(Race.Random, Difficulty.Medium)
-	], realtime=False)
+	], realtime=True)
