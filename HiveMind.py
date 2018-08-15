@@ -290,4 +290,4 @@ run_game(maps.get("AbyssalReefLE"), [
 	#Human(Race.Terran),
 	Bot(Race.Zerg, HiveMind()),
 	Computer(Race.Random, Difficulty.Medium)
-	], realtime=True)
+	], realtime=False)

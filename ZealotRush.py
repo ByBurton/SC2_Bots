@@ -5,7 +5,6 @@ from sc2 import run_game, maps, Race, Difficulty
 from sc2.player import Bot, Computer, Human
 from sc2.constants import *
 from sc2.data import race_townhalls
-#from terran import BotName
 
 class ZealotRushBot(sc2.BotAI):
 	def __init__(self):
@@ -21,7 +20,13 @@ class ZealotRushBot(sc2.BotAI):
 		self.charge = False
 
 	async def on_step(self, iteration):
-		await self.distribute_workers()  # in sc2/bot_ai.py
+		if round(self.time) % 3 == 0:
+			await self.do_attack()
+			await self.do_defend()
+
+		if round(self.time) % 6 == 0:
+			await self.distribute_workers()  # in sc2/bot_ai.py			
+
 		await self.build_pylons()
 		await self.expand()
 		await self.train_probes()
@@ -33,14 +38,13 @@ class ZealotRushBot(sc2.BotAI):
 		await self.do_forge_research()
 		await self.do_tc_research()
 		await self.train_zealots()
-		await self.do_attack()
-		await self.do_defend()
+
 
 
 	async def do_attack(self):
 		zealots = self.units(ZEALOT).idle
 
-		no_attackers = (self.units(GATEWAY).amount * 5) + 2
+		no_attackers = (self.units(GATEWAY).amount * 7) + 2
 		if no_attackers >= 75:
 			no_attackers = 75
 
@@ -56,17 +60,17 @@ class ZealotRushBot(sc2.BotAI):
 		for building in self.units().structure:
 			bl_pos = building.position
 			for zealot in zealots:
-				if self.known_enemy_units.closer_than(25, bl_pos).exists:
+				if self.known_enemy_units.closer_than(20, bl_pos).exists:
 
 					#print("defend: idle units: %d; total units: %d" % (forces.amount, nonidle.amount))
 
-					choice = random.choice(self.known_enemy_units.closer_than(26, bl_pos))
+					choice = random.choice(self.known_enemy_units.closer_than(20, bl_pos))
 					await self.do(zealot.attack(choice.position))
 				else:
 					break
 
 	async def expand(self):
-		if self.can_afford(NEXUS) and not self.already_pending(NEXUS):
+		if self.can_afford(NEXUS) and not self.already_pending(NEXUS) and self.units(GATEWAY).amount >= self.townhalls.ready.amount + 1:
 			await self.expand_now()
 
 	async def build_assimilators(self):
@@ -85,14 +89,14 @@ class ZealotRushBot(sc2.BotAI):
 		if self.units(PROBE).amount >= 50:
 			return
 
-		maxprobes = ( self.townhalls.ready.amount * 17 ) + 1
-		if maxprobes >= 50 :
+		maxprobes = ( self.townhalls.ready.amount * 17 )
+		if maxprobes >= 50:
 			maxprobes = 50
 
 		nexi = self.townhalls.ready.noqueue
 		if nexi.exists:
 			for nexus in nexi:
-				if self.can_afford(PROBE) and self.supply_left >= 1:
+				if self.can_afford(PROBE) and self.supply_left >= 1 and self.units(PROBE).amount <= maxprobes:
 					await self.do(nexus.train(PROBE))
 
 
@@ -127,13 +131,13 @@ class ZealotRushBot(sc2.BotAI):
 			return
 
 
-		if self.units(GATEWAY).amount == 0 or self.minerals > 500:
-			if self.can_afford(GATEWAY) and not self.already_pending(GATEWAY):
+		if self.units(GATEWAY).amount < self.townhalls.ready.amount or self.minerals >= 500:
+			if self.can_afford(GATEWAY):
 				await self.build(GATEWAY, near=pylon)
 
 
 	async def build_forges(self):
-		if self.units(PROBE).amount <= 30 and self.townhalls.ready.amount < 2:
+		if self.townhalls.ready.amount <= 1:
 			return
 
 		pylons = self.units(PYLON).ready
@@ -184,31 +188,40 @@ class ZealotRushBot(sc2.BotAI):
 		if forges.exists:
 			for forge in forges:
 				if self.can_afford(PROTOSSGROUNDWEAPONSLEVEL1) and self.weapons_1 == False:
-					await self.do(forge.research(PROTOSSGROUNDWEAPONSLEVEL1))
+					#await self.do(forge.research(PROTOSSGROUNDWEAPONSLEVEL1))
+					await self.do(forge(AbilityId.FORGERESEARCH_PROTOSSGROUNDWEAPONSLEVEL1))
 					self.weapons_1 = True
-				if self.can_afford(PROTOSSGROUNDWEAPONSLEVEL2) and self.weapons_2 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
-					await self.do(forge.research(PROTOSSGROUNDWEAPONSLEVEL2))
+				elif self.can_afford(PROTOSSGROUNDWEAPONSLEVEL2) and self.weapons_2 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
+					#await self.do(forge.research(PROTOSSGROUNDWEAPONSLEVEL2))
+					await self.do(forge(AbilityId.FORGERESEARCH_PROTOSSGROUNDWEAPONSLEVEL2))
 					self.weapons_2 = True
-				if self.can_afford(PROTOSSGROUNDWEAPONSLEVEL3) and self.weapons_3 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
-					await self.do(forge.research(PROTOSSGROUNDWEAPONSLEVEL3))
+				elif self.can_afford(PROTOSSGROUNDWEAPONSLEVEL3) and self.weapons_3 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
+					#await self.do(forge.research(PROTOSSGROUNDWEAPONSLEVEL3))
+					await self.do(forge(AbilityId.FORGERESEARCH_PROTOSSGROUNDWEAPONSLEVEL3))
 					self.weapons_3 = True
-				if self.can_afford(PROTOSSSHIELDSLEVEL1) and self.shields_1 == False:
-					await self.do(forge.research(PROTOSSSHIELDSLEVEL1))
+				elif self.can_afford(PROTOSSSHIELDSLEVEL1) and self.shields_1 == False:
+					#await self.do(forge.research(PROTOSSSHIELDSLEVEL1))
+					await self.do(forge(AbilityId.FORGERESEARCH_PROTOSSSHIELDSLEVEL1))					
 					self.shields_1 = True
-				if self.can_afford(PROTOSSSHIELDSLEVEL2) and self.shields_2 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
-					await self.do(forge.research(PROTOSSSHIELDSLEVEL2))
+				elif self.can_afford(PROTOSSSHIELDSLEVEL2) and self.shields_2 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
+					#await self.do(forge.research(PROTOSSSHIELDSLEVEL2))
+					await self.do(forge(AbilityId.FORGERESEARCH_PROTOSSSHIELDSLEVEL2))		
 					self.shields_2 = True
-				if self.can_afford(PROTOSSSHIELDSLEVEL3) and self.shields_3 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
-					await self.do(forge.research(PROTOSSSHIELDSLEVEL3))
+				elif self.can_afford(PROTOSSSHIELDSLEVEL3) and self.shields_3 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
+					#await self.do(forge.research(PROTOSSSHIELDSLEVEL3))
+					await self.do(forge(AbilityId.FORGERESEARCH_PROTOSSSHIELDSLEVEL3))		
 					self.shields_3 = True
-				if self.can_afford(PROTOSSGROUNDARMORSLEVEL1) and self.armor_1 == False:
-					await self.do(forge.research(PROTOSSGROUNDARMORSLEVEL1))
+				elif self.can_afford(PROTOSSGROUNDARMORSLEVEL1) and self.armor_1 == False:
+					#await self.do(forge.research(PROTOSSGROUNDARMORSLEVEL1))
+					await self.do(forge(AbilityId.FORGERESEARCH_PROTOSSGROUNDARMORLEVEL1))	
 					self.armor_1 = True
-				if self.can_afford(PROTOSSGROUNDARMORSLEVEL2) and self.armor_2 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
-					await self.do(forge.research(PROTOSSGROUNDARMORSLEVEL2))
+				elif self.can_afford(PROTOSSGROUNDARMORSLEVEL2) and self.armor_2 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
+					#await self.do(forge.research(PROTOSSGROUNDARMORSLEVEL2))
+					await self.do(forge(AbilityId.FORGERESEARCH_PROTOSSGROUNDARMORLEVEL2))
 					self.armor_2 = True
-				if self.can_afford(PROTOSSGROUNDARMORSLEVEL3) and self.armor_3 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
-					await self.do(forge.research(PROTOSSGROUNDARMORSLEVEL3))
+				elif self.can_afford(PROTOSSGROUNDARMORSLEVEL3) and self.armor_3 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
+					#await self.do(forge.research(PROTOSSGROUNDARMORSLEVEL3))
+					await self.do(forge(AbilityId.FORGERESEARCH_PROTOSSGROUNDARMORLEVEL3))
 					self.armor_3 = True	
 
 	async def do_tc_research(self):
@@ -231,5 +244,5 @@ class ZealotRushBot(sc2.BotAI):
 run_game(maps.get("AbyssalReefLE"), [
 	#Human(Race.Terran),
 	Bot(Race.Protoss, ZealotRushBot()),
-	Computer(Race.Random, Difficulty.Hard)
+	Computer(Race.Random, Difficulty.VeryHard)
 	], realtime=False)
