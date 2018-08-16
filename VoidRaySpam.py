@@ -7,17 +7,8 @@ from sc2.constants import *
 from sc2.data import race_townhalls
 
 class VoidRaySpamBot(sc2.BotAI):
-	def __init__(self):
-		self.weapons_1 = False
-		self.weapons_2 = False
-		self.weapons_3 = False
-		self.shields_1 = False
-		self.shields_2 = False
-		self.shields_3 = False
-		self.armor_1 = False
-		self.armor_2 = False
-		self.armor_3 = False
-		self.charge = False
+	#def __init__(self):
+
 
 	async def on_step(self, iteration):
 		if round(self.time) % 3 == 0:
@@ -40,6 +31,7 @@ class VoidRaySpamBot(sc2.BotAI):
 		await self.do_forge_research()
 		await self.build_stargates()
 		await self.train_void_rays()
+		await self.build_static_defenses()
 
 
 
@@ -47,7 +39,7 @@ class VoidRaySpamBot(sc2.BotAI):
 		rays = self.units(VOIDRAY).idle
 
 		no_attackers = (self.units(STARGATE).amount * 2) + 5
-		if no_attackers >= 35:
+		if no_attackers > 35:
 			no_attackers = 35
 
 		if rays.exists:
@@ -101,7 +93,7 @@ class VoidRaySpamBot(sc2.BotAI):
 					await self.do(worker.build(ASSIMILATOR, vg))
 
 	async def train_probes(self):
-		if self.units(PROBE).amount >= 50:
+		if self.units(PROBE).amount >= 60:
 			return
 
 		maxprobes = ( self.townhalls.ready.amount * 21 )
@@ -152,16 +144,18 @@ class VoidRaySpamBot(sc2.BotAI):
 			return
 
 
-		if self.units(STARGATE).amount < self.townhalls.ready.amount + 1 or self.minerals >= 700 and self.vespene >= 800:
-			if self.weapons_3 == False:
-				if self.units(CYBERNETICSCORE).ready.noqueue.exists:
-					return
-			if self.armor_3 == False:
-				if self.units(CYBERNETICSCORE).ready.noqueue.exists:
-					return
-			if self.shields_3 == False:
-				if self.units(FORGE).ready.noqueue.exists:
-					return
+		if self.units(STARGATE).amount < self.townhalls.ready.amount + 1 or (self.minerals >= 700 and self.vespene >= 800):
+			if self.units(STARGATE).amount >= 1:
+				if not PROTOSSSHIELDSLEVEL3 in self.state.upgrades:
+					if self.units(FORGE).ready.noqueue.exists:
+						return
+				if not PROTOSSAIRWEAPONSLEVEL3 in self.state.upgrades:
+					if self.units(CYBERNETICSCORE).ready.noqueue.exists:
+						return
+				if not PROTOSSAIRARMORSLEVEL3 in self.state.upgrades:
+					if self.units(CYBERNETICSCORE).ready.noqueue.exists:
+						return
+						
 			if self.can_afford(STARGATE):
 				await self.build(STARGATE, near=pylon)
 
@@ -229,14 +223,14 @@ class VoidRaySpamBot(sc2.BotAI):
 			await self.build(TWILIGHTCOUNCIL, near=pylon)
 
 	async def train_void_rays(self):
-		if self.weapons_3 == False:
-			if self.units(CYBERNETICSCORE).ready.noqueue.exists:
-				return
-		if self.armor_3 == False:
-			if self.units(CYBERNETICSCORE).ready.noqueue.exists:
-				return
-		if self.shields_3 == False:
+		if not PROTOSSSHIELDSLEVEL3 in self.state.upgrades:
 			if self.units(FORGE).ready.noqueue.exists:
+				return
+		elif not PROTOSSAIRWEAPONSLEVEL3 in self.state.upgrades:
+			if self.units(CYBERNETICSCORE).ready.noqueue.exists:
+				return
+		elif not PROTOSSAIRARMORSLEVEL3 in self.state.upgrades:
+			if self.units(CYBERNETICSCORE).ready.noqueue.exists:
 				return
 
 		for sg in self.units(STARGATE).ready.noqueue:
@@ -250,47 +244,53 @@ class VoidRaySpamBot(sc2.BotAI):
 
 		if forges.exists:
 			for forge in forges:
-				if self.can_afford(PROTOSSSHIELDSLEVEL1) and self.shields_1 == False:
+				if self.can_afford(PROTOSSSHIELDSLEVEL1) and not PROTOSSSHIELDSLEVEL1 in self.state.upgrades:
 					#await self.do(forge.research(PROTOSSSHIELDSLEVEL1))
 					await self.do(forge(AbilityId.FORGERESEARCH_PROTOSSSHIELDSLEVEL1))					
-					self.shields_1 = True
-				elif self.can_afford(PROTOSSSHIELDSLEVEL2) and self.shields_2 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
+				elif self.can_afford(PROTOSSSHIELDSLEVEL2) and not PROTOSSSHIELDSLEVEL2 in self.state.upgrades and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
 					#await self.do(forge.research(PROTOSSSHIELDSLEVEL2))
 					await self.do(forge(AbilityId.FORGERESEARCH_PROTOSSSHIELDSLEVEL2))		
-					self.shields_2 = True
-				elif self.can_afford(PROTOSSSHIELDSLEVEL3) and self.shields_3 == False and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
+				elif self.can_afford(PROTOSSSHIELDSLEVEL3) and not PROTOSSSHIELDSLEVEL3 in self.state.upgrades and self.units(TWILIGHTCOUNCIL).ready.amount >= 1:
 					#await self.do(forge.research(PROTOSSSHIELDSLEVEL3))
 					await self.do(forge(AbilityId.FORGERESEARCH_PROTOSSSHIELDSLEVEL3))		
-					self.shields_3 = True
 
 	async def do_cybernetics_research(self):
 		cores = self.units(CYBERNETICSCORE).ready.noqueue
 		if cores.exists:
 			for core in cores:
-				if self.can_afford(PROTOSSAIRWEAPONSLEVEL1) and self.weapons_1 == False:
+				if self.can_afford(PROTOSSAIRWEAPONSLEVEL1) and not PROTOSSAIRWEAPONSLEVEL1 in self.state.upgrades :
 					await self.do(core(AbilityId.CYBERNETICSCORERESEARCH_PROTOSSAIRWEAPONSLEVEL1))
-					self.weapons_1 = True
-				elif self.can_afford(PROTOSSAIRWEAPONSLEVEL2) and self.weapons_2 == False and self.units(FLEETBEACON).ready.amount >= 1:
+				elif self.can_afford(PROTOSSAIRWEAPONSLEVEL2) and not PROTOSSAIRWEAPONSLEVEL2 in self.state.upgrades and self.units(FLEETBEACON).ready.amount >= 1:
 					await self.do(core(AbilityId.CYBERNETICSCORERESEARCH_PROTOSSAIRWEAPONSLEVEL2))
-					self.weapons_2 = True
-				elif self.can_afford(PROTOSSAIRWEAPONSLEVEL3) and self.weapons_3 == False and self.units(FLEETBEACON).ready.amount >= 1:
+				elif self.can_afford(PROTOSSAIRWEAPONSLEVEL3) and not PROTOSSAIRWEAPONSLEVEL3 in self.state.upgrades and self.units(FLEETBEACON).ready.amount >= 1:
 					await self.do(core(AbilityId.CYBERNETICSCORERESEARCH_PROTOSSAIRWEAPONSLEVEL3))
-					self.weapons_3 = True
-				elif self.can_afford(PROTOSSAIRARMORSLEVEL1) and self.armor_1 == False:
+				elif self.can_afford(PROTOSSAIRARMORSLEVEL1) and not PROTOSSAIRARMORSLEVEL1 in self.state.upgrades:
 					await self.do(core(AbilityId.CYBERNETICSCORERESEARCH_PROTOSSAIRARMORLEVEL1))	
-					self.armor_1 = True
-				elif self.can_afford(PROTOSSAIRARMORSLEVEL2) and self.armor_2 == False and self.units(FLEETBEACON).ready.amount >= 1:
+				elif self.can_afford(PROTOSSAIRARMORSLEVEL2) and not PROTOSSAIRARMORSLEVEL2 in self.state.upgrades and self.units(FLEETBEACON).ready.amount >= 1:
 					await self.do(core(AbilityId.CYBERNETICSCORERESEARCH_PROTOSSAIRARMORLEVEL2))
-					self.armor_2 = True
-				elif self.can_afford(PROTOSSAIRARMORSLEVEL3) and self.armor_3 == False and self.units(FLEETBEACON).ready.amount >= 1:
+				elif self.can_afford(PROTOSSAIRARMORSLEVEL3) and not PROTOSSAIRARMORSLEVEL3 in self.state.upgrades and self.units(FLEETBEACON).ready.amount >= 1:
 					await self.do(core(AbilityId.CYBERNETICSCORERESEARCH_PROTOSSAIRARMORLEVEL3))
-					self.armor_3 = True	
 
+	async def build_static_defenses(self):
+		if self.minerals < 800:
+			return
 
+		pylons = self.units(PYLON).ready
+		if pylons.exists:
+			pylon = pylons.random
+		else:
+			return
+
+		if not self.units(FORGE).ready.exists:
+			return
+
+		if self.can_afford(PHOTONCANNON):
+			await self.build(PHOTONCANNON, near=pylon.position.towards(self.game_info.map_center, 4))
 
 #runs the actual game
+#run_game(maps.get("AbyssalReefLE"), [
 run_game(maps.get("AbyssalReefLE"), [
-	#Human(Race.Terran),
+	#Human(Race.Zerg),
 	Bot(Race.Protoss, VoidRaySpamBot()),
 	Computer(Race.Zerg, Difficulty.VeryHard)
 	], realtime=False)

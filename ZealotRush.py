@@ -244,5 +244,5 @@ class ZealotRushBot(sc2.BotAI):
 run_game(maps.get("AbyssalReefLE"), [
 	#Human(Race.Terran),
 	Bot(Race.Protoss, ZealotRushBot()),
-	Computer(Race.Random, Difficulty.VeryHard)
+	Computer(Race.Random, Difficulty.Hard)
 	], realtime=False)
