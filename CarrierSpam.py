@@ -120,7 +120,7 @@ class CarrierSpamBot(sc2.BotAI):
 		nexi = self.townhalls.ready
 		if not nexi.exists:
 			return
-		nexus = nexi.first
+		nexus = nexi.random
 
 		supply_no = 6 * self.units(STARGATE).ready.amount
 		if supply_no == 0:
