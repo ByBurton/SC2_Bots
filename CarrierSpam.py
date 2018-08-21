@@ -6,7 +6,7 @@ from sc2.player import Bot, Computer, Human
 from sc2.constants import *
 from sc2.data import race_townhalls
 
-class VoidRaySpamBot(sc2.BotAI):
+class CarrierSpamBot(sc2.BotAI):
 	#def __init__(self):
 
 
@@ -25,41 +25,42 @@ class VoidRaySpamBot(sc2.BotAI):
 		await self.build_gate_way()
 		await self.build_cybernetics_core()
 		await self.build_fleet_beacon()
+		await self.do_fleet_beacon_research()
 		await self.do_cybernetics_research()
 		await self.build_forge()
 		await self.build_twilight_council()
 		await self.do_forge_research()
 		await self.build_stargates()
-		await self.train_void_rays()
+		await self.train_carriers()
 		await self.build_static_defenses()
 
 
 
 	async def do_attack(self):
-		rays = self.units(VOIDRAY).idle
+		carriers = self.units(CARRIER).idle
 
-		no_attackers = (self.units(STARGATE).amount * 2) + 5
-		if no_attackers > 35:
-			no_attackers = 35
+		no_attackers = (self.units(STARGATE).amount * 1) + 4
+		if no_attackers > 18:
+			no_attackers = 18
 
-		if rays.exists:
-			if rays.amount >= no_attackers:
-				for ray in rays:
-					await self.do(ray.attack(self.find_target(self.state)))
+		if carriers.exists:
+			if carriers.amount >= no_attackers:
+				for carrier in carriers:
+					await self.do(carrier.attack(self.find_target(self.state)))
 
 	#todo: do not follow the enemy back to their base
 	async def do_defend(self):
-		rays = self.units(VOIDRAY).idle
+		carriers = self.units(CARRIER).idle
 
 		for building in self.units().structure:
 			bl_pos = building.position
-			for ray in rays:
+			for carrier in carriers:
 				if self.known_enemy_units.closer_than(20, bl_pos).exists:
 
 					#print("defend: idle units: %d; total units: %d" % (forces.amount, nonidle.amount))
 
 					choice = random.choice(self.known_enemy_units.closer_than(20, bl_pos))
-					await self.do(ray.attack(choice.position))
+					await self.do(carrier.attack(choice.position))
 				else:
 					break
 
@@ -219,7 +220,10 @@ class VoidRaySpamBot(sc2.BotAI):
 		if self.units(TWILIGHTCOUNCIL).ready.amount == 0 and self.can_afford(TWILIGHTCOUNCIL) and not self.already_pending(TWILIGHTCOUNCIL):
 			await self.build(TWILIGHTCOUNCIL, near=pylon)
 
-	async def train_void_rays(self):
+	async def train_carriers(self):
+		if not self.units(FLEETBEACON).ready.exists:
+			return
+
 		if not PROTOSSSHIELDSLEVEL3 in self.state.upgrades:
 			if self.units(FORGE).ready.noqueue.exists:
 				return
@@ -231,8 +235,8 @@ class VoidRaySpamBot(sc2.BotAI):
 				return
 
 		for sg in self.units(STARGATE).ready.noqueue:
-			if self.can_afford(VOIDRAY) and self.supply_left >= 4:
-				await self.do(sg.train(VOIDRAY))
+			if self.can_afford(CARRIER) and self.supply_left >= 6:
+				await self.do(sg.train(CARRIER))
 
 	async def do_forge_research(self):
 		forges = self.units(FORGE).ready.noqueue
@@ -265,6 +269,19 @@ class VoidRaySpamBot(sc2.BotAI):
 				elif self.can_afford(PROTOSSAIRARMORSLEVEL3) and not PROTOSSAIRARMORSLEVEL3 in self.state.upgrades and not self.already_pending(PROTOSSAIRARMORSLEVEL3) and self.units(FLEETBEACON).ready.amount >= 1:
 					await self.do(core(AbilityId.CYBERNETICSCORERESEARCH_PROTOSSAIRARMORLEVEL3))
 
+	async def try_upgrade(self, facility, upgrade_id, ability_id):
+		#not self.already_pending(upgrade_id) 
+		if self.can_afford(upgrade_id) and not upgrade_id in self.state.upgrades:
+			if self.has_ability(ability_id, facility):
+				await self.do(facility(ability_id))
+
+
+	async def do_fleet_beacon_research(self):
+		beacons = self.units(FLEETBEACON).ready.noqueue
+		if beacons.exists:
+			for beacon in beacons:
+				await self.try_upgrade(beacon, CARRIERLAUNCHSPEEDUPGRADE, FLEETBEACONRESEARCH_RESEARCHINTERCEPTORLAUNCHSPEEDUPGRADE)
+
 	async def build_static_defenses(self):
 		if self.minerals < 800:
 			return
@@ -292,6 +309,6 @@ class VoidRaySpamBot(sc2.BotAI):
 #run_game(maps.get("AbyssalReefLE"), [
 run_game(maps.get("AbyssalReefLE"), [
 	#Human(Race.Terran),
-	Bot(Race.Protoss, VoidRaySpamBot()),
-	Computer(Race.Random, Difficulty.VeryHard)
-	], realtime=True)
+	Bot(Race.Protoss, CarrierSpamBot()),
+	Computer(Race.Random, Difficulty.Medium)
+	], realtime=False)
