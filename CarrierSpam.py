@@ -122,13 +122,16 @@ class CarrierSpamBot(sc2.BotAI):
 			return
 		nexus = nexi.first
 
-		supply_no = 4 * self.units(STARGATE).ready.amount
+		supply_no = 6 * self.units(STARGATE).ready.amount
 		if supply_no == 0:
-			supply_no = 2
+			supply_no = 6
+
+		if self.units(PYLON).ready.amount >= 40:
+			return
 
 		if self.supply_left <= supply_no and not self.already_pending(PYLON):
 			if self.can_afford(PYLON):
-				await self.build(PYLON, near=nexus.position.towards(self.game_info.map_center, 5))
+				await self.build(PYLON, near=nexus.position.towards(self.game_info.map_center, 10))
 			return
 
 	async def build_stargates(self):
@@ -275,15 +278,23 @@ class CarrierSpamBot(sc2.BotAI):
 			if self.has_ability(ability_id, facility):
 				await self.do(facility(ability_id))
 
+	# Check if a unit has an ability available (also checks upgrade costs??)
+	async def has_ability(self, ability, unit):
+		abilities = await self.get_available_abilities(unit)
+		if ability in abilities:
+			return True
+		else:
+			return False
+
 
 	async def do_fleet_beacon_research(self):
 		beacons = self.units(FLEETBEACON).ready.noqueue
 		if beacons.exists:
 			for beacon in beacons:
-				await self.try_upgrade(beacon, CARRIERLAUNCHSPEEDUPGRADE, FLEETBEACONRESEARCH_RESEARCHINTERCEPTORLAUNCHSPEEDUPGRADE)
+				await self.try_upgrade(beacon, CARRIERLAUNCHSPEEDUPGRADE, AbilityId.FLEETBEACONRESEARCH_RESEARCHINTERCEPTORLAUNCHSPEEDUPGRADE)
 
 	async def build_static_defenses(self):
-		if self.minerals < 800:
+		if self.minerals < 800 and self.units(FLEETBEACON).ready.exists:
 			return
 
 		pylons = self.units(PYLON).ready
