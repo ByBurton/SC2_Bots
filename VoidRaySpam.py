@@ -5,6 +5,7 @@ from sc2 import run_game, maps, Race, Difficulty
 from sc2.player import Bot, Computer, Human
 from sc2.constants import *
 from sc2.data import race_townhalls
+#from CarrierSpam import CarrierSpamBot
 
 class VoidRaySpamBot(sc2.BotAI):
 	#def __init__(self):
@@ -290,7 +291,19 @@ class VoidRaySpamBot(sc2.BotAI):
 #runs the actual game
 #run_game(maps.get("AbyssalReefLE"), [
 run_game(maps.get("AbyssalReefLE"), [
-	#Human(Race.Terran),
-	Bot(Race.Protoss, VoidRaySpamBot()),
-	Computer(Race.Random, Difficulty.VeryHard)
-	], realtime=False);
+	Human(Race.Terran),
+	Bot(Race.Protoss, VoidRaySpamBot())#,
+	#Computer(Race.Random, Difficulty.VeryHard)
+	], realtime=True);
+
+#Computer.Difficulty:
+	#VeryEasy,
+    #Easy,
+    #Medium,
+    #MediumHard,
+    #Hard,
+    #Harder,
+    #VeryHard,
+    #CheatVision,
+    #CheatMoney,
+    #CheatInsane

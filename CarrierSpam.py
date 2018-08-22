@@ -316,7 +316,7 @@ class CarrierSpamBot(sc2.BotAI):
 
 
 	async def build_static_defenses(self):
-		if self.minerals < 1350 or not self.units(FLEETBEACON).ready.exists:
+		if self.minerals < 1300 or not self.units(FLEETBEACON).ready.exists:
 			return;
 
 		pylons = self.units(PYLON).ready;
@@ -331,7 +331,7 @@ class CarrierSpamBot(sc2.BotAI):
 		#build a cannon and battery
 		if self.can_afford(PHOTONCANNON):
 			await self.build(PHOTONCANNON, near=pylon.position.towards(self.game_info.map_center, 4));
-			if self.can_afford(SHIELDBATTERY):
+			if self.can_afford(SHIELDBATTERY) and self.units(SHIELDBATTERY).amount <= self.units(PHOTONCANNON).amount / 3:
 				await self.build(SHIELDBATTERY, near=pylon.position.towards(self.game_info.map_center, -2));
 
 
@@ -340,7 +340,7 @@ class CarrierSpamBot(sc2.BotAI):
 #runs the actual game
 #run_game(maps.get("AbyssalReefLE"), [
 run_game(maps.get("AbyssalReefLE"), [
-	#Human(Race.Protoss),
-	Bot(Race.Protoss, CarrierSpamBot()),
-	Computer(Race.Random, Difficulty.VeryHard)
-	], realtime=False);
+	Human(Race.Protoss),
+	Bot(Race.Protoss, CarrierSpamBot())#,
+	#Computer(Race.Protoss, Difficulty.VeryHard)
+	], realtime=True);#, save_replay_as="CarrierSpamBot_vs_VeryHard.SC2Replay");
