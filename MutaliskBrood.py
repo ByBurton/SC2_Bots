@@ -203,7 +203,7 @@ class MutaliskBrood(sc2.BotAI):
 			hatcheries = self.townhalls.ready.noqueue;
 			if hatcheries.exists:
 				for hatchery in hatcheries:
-					if self.can_afford(QUEEN):
+					if self.can_afford(QUEEN) and not self.already_pending(QUEEN):
 						await self.do(hatchery.train(QUEEN));
 
 
