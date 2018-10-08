@@ -340,7 +340,7 @@ class CarrierSpamBot(sc2.BotAI):
 #runs the actual game
 #run_game(maps.get("AbyssalReefLE"), [
 run_game(maps.get("AbyssalReefLE"), [
-	Human(Race.Protoss),
+	Human(Race.Zerg),
 	Bot(Race.Protoss, CarrierSpamBot())#,
 	#Computer(Race.Protoss, Difficulty.VeryHard)
 	], realtime=True);#, save_replay_as="CarrierSpamBot_vs_VeryHard.SC2Replay");

@@ -1,11 +1,11 @@
-import sc2
-import random
+import sc2;
+import random;
 
-from sc2 import run_game, maps, Race, Difficulty
-from sc2.player import Bot, Computer, Human
-from sc2.constants import *
-from sc2.data import race_townhalls
-#from CarrierSpam import CarrierSpamBot
+from sc2 import run_game, maps, Race, Difficulty;
+from sc2.player import Bot, Computer, Human;
+from sc2.constants import *;
+from sc2.data import race_townhalls;
+#from CarrierSpam import CarrierSpamBot;
 
 class MutaliskBrood(sc2.BotAI):
 	#def __init__(self):
@@ -101,6 +101,9 @@ class MutaliskBrood(sc2.BotAI):
 
 
 	async def expand(self):
+		if self.townhalls.ready.amount < 4 * self.units(MUTALISK).amount and not self.townhalls.ready.amount < 2:
+			return;
+
 		if self.can_afford(UnitTypeId.HATCHERY) and not self.already_pending(UnitTypeId.HATCHERY):
 			#await self.expand_now()
 			
@@ -145,7 +148,7 @@ class MutaliskBrood(sc2.BotAI):
 
 	async def train_overlords(self):
 		for larva in self.units(LARVA):
-			if self.supply_left <= 4 and self.units(OVERLORD).amount <= 25 and self.can_afford(OVERLORD) and not self.already_pending(OVERLORD):
+			if self.supply_left <= 4 * self.townhalls.ready.amount and self.units(OVERLORD).amount <= 25 and self.can_afford(OVERLORD) and not self.already_pending(OVERLORD):
 				await self.do(larva.train(OVERLORD));
 
 
@@ -227,19 +230,25 @@ class MutaliskBrood(sc2.BotAI):
 
 
 	async def upgrade_townhalls(self):
-		if self.units(HIVE).ready.exists or self.already_pending(HIVE):
+		if self.units(QUEEN).amount < self.townhalls.ready.amount:
 			return;
 
 		for tier1 in self.units(HATCHERY).ready.noqueue:
 			if self.can_afford(LAIR) and self.units(SPAWNINGPOOL).ready.exists:
-				await self.do(tier1.build(LAIR))
+				if self.already_pending(LAIR) or self.already_pending(HIVE) or self.units(LAIR).ready.exists or self.units(HIVE).ready.exists:
+					return;
+				else:
+					await self.do(tier1.build(LAIR));
 		for tier2 in self.units(LAIR).ready.noqueue:
 			if self.can_afford(HIVE) and self.units(INFESTATIONPIT).ready.exists:
-				await self.do(tier2.build(HIVE))
+				if self.already_pending(HIVE) or self.units(HIVE).ready.exists:
+					return;
+				else:
+					await self.do(tier2.build(HIVE));
 
 
 	async def build_static_defenses(self):
-		if self.minerals < 1500 or self.units(DRONE).amount < 10:
+		if self.minerals < 1000 * self.townhalls.ready.amount or self.units(DRONE).amount < 10:
 			return;
 
 		if self.can_afford(SPINECRAWLER):
@@ -250,10 +259,10 @@ class MutaliskBrood(sc2.BotAI):
 
 #runs the actual game
 run_game(maps.get("AbyssalReefLE"), [
-	#Human(Race.Terran),
-	Bot(Race.Zerg, MutaliskBrood()),
-	Computer(Race.Random, Difficulty.Hard)
-	], realtime=False);
+	Human(Race.Random),
+	Bot(Race.Zerg, MutaliskBrood())#,
+	#Computer(Race.Random, Difficulty.VeryHard)
+	], realtime=True);
 
 #Computer.Difficulty:
 	#VeryEasy,
