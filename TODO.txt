@@ -1,0 +1,6 @@
+use .idle if it's a Units objec or .is_idle if it is a Unit instead of .noqueue
+
+e.g.:
+for zergling in self.units(ZERGLING).idle
+    if zergling.is_idle:
+        do it 

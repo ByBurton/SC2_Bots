@@ -103,7 +103,7 @@ class VoidRaySpamBot(sc2.BotAI):
 		if maxprobes >= 60:
 			maxprobes = 60;
 
-		nexi = self.townhalls.ready.noqueue;
+		nexi = self.townhalls.ready.idle;
 		if nexi.exists:
 			for nexus in nexi:
 				if self.can_afford(PROBE) and self.supply_left >= 1 and self.units(PROBE).amount <= maxprobes:
@@ -224,21 +224,21 @@ class VoidRaySpamBot(sc2.BotAI):
 
 	async def train_void_rays(self):
 		if not PROTOSSSHIELDSLEVEL3 in self.state.upgrades:
-			if self.units(FORGE).ready.noqueue.exists:
+			if self.units(FORGE).ready.idle.exists:
 				return;
 		elif not PROTOSSAIRWEAPONSLEVEL3 in self.state.upgrades:
-			if self.units(CYBERNETICSCORE).ready.noqueue.exists:
+			if self.units(CYBERNETICSCORE).ready.idle.exists:
 				return;
 		elif not PROTOSSAIRARMORSLEVEL3 in self.state.upgrades:
-			if self.units(CYBERNETICSCORE).ready.noqueue.exists:
+			if self.units(CYBERNETICSCORE).ready.idle.exists:
 				return;
 
-		for sg in self.units(STARGATE).ready.noqueue:
+		for sg in self.units(STARGATE).ready.idle:
 			if self.can_afford(VOIDRAY) and self.supply_left >= 4:
 				await self.do(sg.train(VOIDRAY));
 
 	async def do_forge_research(self):
-		forges = self.units(FORGE).ready.noqueue;
+		forges = self.units(FORGE).ready.idle;
 		if not forges.exists:
 			return;
 
@@ -252,7 +252,7 @@ class VoidRaySpamBot(sc2.BotAI):
 					await self.do(forge(AbilityId.FORGERESEARCH_PROTOSSSHIELDSLEVEL3));	
 
 	async def do_cybernetics_research(self):
-		cores = self.units(CYBERNETICSCORE).ready.noqueue;
+		cores = self.units(CYBERNETICSCORE).ready.idle;
 		if cores.exists:
 			for core in cores:
 				if self.can_afford(PROTOSSAIRWEAPONSLEVEL1) and not PROTOSSAIRWEAPONSLEVEL1 in self.state.upgrades and not self.already_pending(PROTOSSAIRWEAPONSLEVEL1):
@@ -291,10 +291,10 @@ class VoidRaySpamBot(sc2.BotAI):
 #runs the actual game
 #run_game(maps.get("AbyssalReefLE"), [
 run_game(maps.get("AbyssalReefLE"), [
-	Human(Race.Terran),
-	Bot(Race.Protoss, VoidRaySpamBot())#,
-	#Computer(Race.Random, Difficulty.VeryHard)
-	], realtime=True);
+	#Human(Race.Terran),
+	Bot(Race.Protoss, VoidRaySpamBot()),
+	Computer(Race.Random, Difficulty.VeryHard)
+	], realtime=True, save_replay_as="VoidRaySpam_vs_VeryHard.SC2Replay");
 
 #Computer.Difficulty:
 	#VeryEasy,

@@ -182,7 +182,7 @@ class HydraliskBrood(sc2.BotAI):
 
 
 	async def do_evolution_chamber_research(self):
-		for pit in self.units(EVOLUTIONCHAMBER).ready.noqueue:
+		for pit in self.units(EVOLUTIONCHAMBER).ready.idle:
 			await self.try_upgrade(pit, ZERGMISSILEWEAPONSLEVEL1, RESEARCH_ZERGMISSILEWEAPONSLEVEL1);
 			await self.try_upgrade(pit, ZERGMISSILEWEAPONSLEVEL2, RESEARCH_ZERGMISSILEWEAPONSLEVEL2);
 			await self.try_upgrade(pit, ZERGMISSILEWEAPONSLEVEL3, RESEARCH_ZERGMISSILEWEAPONSLEVEL3);
@@ -192,7 +192,7 @@ class HydraliskBrood(sc2.BotAI):
 
 
 	async def do_hydralisk_den_research(self):
-		for den in self.units(HYDRALISKDEN).ready.noqueue:
+		for den in self.units(HYDRALISKDEN).ready.idle:
 			await self.try_upgrade(den, EVOLVEGROOVEDSPINES, RESEARCH_GROOVEDSPINES);
 			await self.try_upgrade(den, EVOLVEMUSCULARAUGMENTS, RESEARCH_MUSCULARAUGMENTS);
 
@@ -204,10 +204,10 @@ class HydraliskBrood(sc2.BotAI):
 		#prio to upgrades except if under attack
 		if self.is_enemy_near():
 			if not ZERGMISSILEWEAPONSLEVEL3 in self.state.upgrades:
-				if self.units(EVOLUTIONCHAMBER).ready.noqueue.exists:
+				if self.units(EVOLUTIONCHAMBER).ready.idle.exists:
 					return;
 			elif not ZERGGROUNDARMORSLEVEL3 in self.state.upgrades:
-				if self.units(EVOLUTIONCHAMBER).ready.noqueue.exists:
+				if self.units(EVOLUTIONCHAMBER).ready.idle.exists:
 					return;
 
 		for larva in self.units(LARVA):
@@ -217,7 +217,7 @@ class HydraliskBrood(sc2.BotAI):
 
 	async def train_queens(self):
 		if self.can_afford(QUEEN) and self.units(SPAWNINGPOOL).ready.exists and self.units(QUEEN).amount < self.townhalls.amount and self.supply_left >= 2:
-			hatcheries = self.townhalls.ready.noqueue;
+			hatcheries = self.townhalls.ready.idle;
 			if hatcheries.exists:
 				for hatchery in hatcheries:
 					if self.can_afford(QUEEN) and not self.already_pending(QUEEN):
@@ -247,18 +247,19 @@ class HydraliskBrood(sc2.BotAI):
 		if self.units(QUEEN).amount < self.townhalls.ready.amount:
 			return;
 
-		for tier1 in self.units(HATCHERY).ready.noqueue:
-			if self.can_afford(LAIR) and self.units(SPAWNINGPOOL).ready.exists:
-				if self.already_pending(LAIR) or self.already_pending(HIVE) or self.units(LAIR).ready.exists or self.units(HIVE).ready.exists:
-					return;
-				else:
-					await self.do(tier1.build(LAIR));
-		for tier2 in self.units(LAIR).ready.noqueue:
+		for tier2 in self.units(LAIR).ready.idle:
 			if self.can_afford(HIVE) and self.units(INFESTATIONPIT).ready.exists:
 				if self.already_pending(HIVE) or self.units(HIVE).ready.exists:
-					return;
+					break;
 				else:
 					await self.do(tier2.build(HIVE));
+
+		for tier1 in self.units(HATCHERY).ready.idle:
+			if self.can_afford(LAIR) and self.units(SPAWNINGPOOL).ready.exists:
+				if self.already_pending(LAIR) or self.already_pending(HIVE) or self.units(LAIR).ready.exists or self.units(HIVE).ready.exists:
+					break;
+				else:
+					await self.do(tier1.build(LAIR));
 
 
 	async def build_static_defenses(self):
@@ -273,10 +274,10 @@ class HydraliskBrood(sc2.BotAI):
 
 #runs the actual game
 run_game(maps.get("AbyssalReefLE"), [
-	Human(Race.Random),
-	Bot(Race.Zerg, HydraliskBrood())#,
-	#Computer(Race.Random, Difficulty.VeryHard)
-	], realtime=True);
+	#Human(Race.Random),
+	Bot(Race.Zerg, HydraliskBrood()),
+	Computer(Race.Random, Difficulty.Hard)
+	], realtime=True, save_replay_as="HydraliskBrood_vs_VeryHard.SC2Replay");
 
 #Computer.Difficulty:
 	#VeryEasy,

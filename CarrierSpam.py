@@ -91,7 +91,7 @@ class CarrierSpamBot(sc2.BotAI):
 		for nexus in self.townhalls.ready:
 			vgs = self.state.vespene_geyser.closer_than(8, nexus);
 			for vg in vgs:
-				if not self.can_afford(ASSIMILATOR) or self.units(PROBE).amount <= 10:
+				if not self.can_afford(ASSIMILATOR) or self.units(PROBE).amount <= 13:
 					break;
 				worker = self.select_build_worker(vg.position);
 				if worker is None:
@@ -101,14 +101,14 @@ class CarrierSpamBot(sc2.BotAI):
 
 
 	async def train_probes(self):
-		if self.units(PROBE).amount >= 60:
+		if self.units(PROBE).amount >= 66:
 			return;
 
 		maxprobes = ( self.townhalls.ready.amount * 21 )
-		if maxprobes >= 60:
-			maxprobes = 60;
+		if maxprobes >= 66:
+			maxprobes = 66;
 
-		nexi = self.townhalls.ready.noqueue;
+		nexi = self.townhalls.ready.idle;
 		if nexi.exists:
 			for nexus in nexi:
 				if self.can_afford(PROBE) and self.supply_left >= 1 and self.units(PROBE).amount <= maxprobes:
@@ -243,22 +243,22 @@ class CarrierSpamBot(sc2.BotAI):
 
 		#prio to upgrades
 		if not PROTOSSSHIELDSLEVEL3 in self.state.upgrades:
-			if self.units(FORGE).ready.noqueue.exists:
+			if self.units(FORGE).ready.idle.exists:
 				return;
 		elif not PROTOSSAIRWEAPONSLEVEL3 in self.state.upgrades:
-			if self.units(CYBERNETICSCORE).ready.noqueue.exists:
+			if self.units(CYBERNETICSCORE).ready.idle.exists:
 				return;
 		elif not PROTOSSAIRARMORSLEVEL3 in self.state.upgrades:
-			if self.units(CYBERNETICSCORE).ready.noqueue.exists:
+			if self.units(CYBERNETICSCORE).ready.idle.exists:
 				return;
 
-		for sg in self.units(STARGATE).ready.noqueue:
+		for sg in self.units(STARGATE).ready.idle:
 			if self.can_afford(CARRIER) and self.supply_left >= 6:
 				await self.do(sg.train(CARRIER));
 
 
 	async def do_forge_research(self):
-		forges = self.units(FORGE).ready.noqueue;
+		forges = self.units(FORGE).ready.idle;
 		if not forges.exists:
 			return;
 
@@ -273,7 +273,7 @@ class CarrierSpamBot(sc2.BotAI):
 
 
 	async def do_cybernetics_research(self):
-		cores = self.units(CYBERNETICSCORE).ready.noqueue;
+		cores = self.units(CYBERNETICSCORE).ready.idle;
 		if cores.exists:
 			for core in cores:
 				if self.can_afford(PROTOSSAIRWEAPONSLEVEL1) and not PROTOSSAIRWEAPONSLEVEL1 in self.state.upgrades and not self.already_pending(PROTOSSAIRWEAPONSLEVEL1):
@@ -308,7 +308,7 @@ class CarrierSpamBot(sc2.BotAI):
 
 
 	async def do_fleet_beacon_research(self):
-		beacons = self.units(FLEETBEACON).ready.noqueue;
+		beacons = self.units(FLEETBEACON).ready.idle;
 		if beacons.exists:
 			for beacon in beacons:
 				await self.try_upgrade(beacon, CARRIERLAUNCHSPEEDUPGRADE, AbilityId.RESEARCH_INTERCEPTORGRAVITONCATAPULT);
@@ -328,7 +328,7 @@ class CarrierSpamBot(sc2.BotAI):
 		if not self.units(FORGE).ready.exists:
 			return;
 
-		#build a cannon and battery
+		#build a cannon and battery (3 times as many cannons)
 		if self.can_afford(PHOTONCANNON):
 			await self.build(PHOTONCANNON, near=pylon.position.towards(self.game_info.map_center, 4));
 			if self.can_afford(SHIELDBATTERY) and self.units(SHIELDBATTERY).amount <= self.units(PHOTONCANNON).amount / 3:
@@ -340,7 +340,16 @@ class CarrierSpamBot(sc2.BotAI):
 #runs the actual game
 #run_game(maps.get("AbyssalReefLE"), [
 run_game(maps.get("AbyssalReefLE"), [
-	Human(Race.Zerg),
-	Bot(Race.Protoss, CarrierSpamBot())#,
-	#Computer(Race.Protoss, Difficulty.VeryHard)
-	], realtime=True);#, save_replay_as="CarrierSpamBot_vs_VeryHard.SC2Replay");
+	#Human(Race.Zerg),
+	Bot(Race.Protoss, CarrierSpamBot()),
+	Computer(Race.Protoss, Difficulty.Hard)
+	], realtime=True, save_replay_as="CarrierSpamBot_vs_VeryHard.SC2Replay");#, save_replay_as="CarrierSpamBot_vs_VeryHard.SC2Replay");
+
+#def main():
+    #run_game(maps.get("AbyssalReefLE"), [
+        #Bot(Race.Protoss, CarrierSpamBot()),
+        #Computer(Race.Random, Difficulty.Hard)
+    #], realtime=True, save_replay_as="CarrierSpam_vs_RandomVeryHard.SC2Replay");
+
+#if __name__ == '__main__':
+    #main();
